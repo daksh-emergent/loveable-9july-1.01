@@ -11,7 +11,8 @@ import uuid
 from datetime import datetime
 
 # Import our new content API
-from content_api import router as content_router
+# Import content API directly from the file
+from content_api_file import router as content_router
 from database import db_manager
 
 
