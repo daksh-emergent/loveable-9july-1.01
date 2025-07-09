@@ -24,6 +24,11 @@ from database import (
     update_document, delete_document, search_documents
 )
 
+from cache import (
+    get_cached_content, set_cached_content, invalidate_content_cache,
+    get_cache_ttl, cache_manager
+)
+
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
@@ -45,11 +50,24 @@ class PaginatedResponse(BaseModel):
 # Hero Content Endpoints
 @router.get("/hero", response_model=ResponseModel)
 async def get_hero_content():
-    """Get active hero content"""
+    """Get active hero content with caching"""
     try:
+        # Check cache first
+        cached_hero = await get_cached_content("hero_content")
+        if cached_hero:
+            return ResponseModel(
+                success=True,
+                message="Hero content retrieved from cache",
+                data=cached_hero[0] if cached_hero else None
+            )
+        
+        # Fetch from database
         hero_data = await get_all_documents("hero_content", {"is_active": True}, limit=1)
         if not hero_data:
             return ResponseModel(success=False, message="No hero content found")
+        
+        # Cache the result
+        await set_cached_content("hero_content", hero_data, ttl=get_cache_ttl("hero_content"))
         
         return ResponseModel(
             success=True,
@@ -74,6 +92,9 @@ async def create_hero_content(hero_data: HeroContentCreate):
         hero_obj = HeroContent(**hero_dict)
         created_hero = await create_document("hero_content", hero_obj.dict())
         
+        # Invalidate cache
+        await invalidate_content_cache("hero_content")
+        
         return ResponseModel(
             success=True,
             message="Hero content created successfully",
@@ -86,13 +107,27 @@ async def create_hero_content(hero_data: HeroContentCreate):
 # Features Endpoints
 @router.get("/features", response_model=ResponseModel)
 async def get_features(category: Optional[str] = None):
-    """Get all active features, optionally filtered by category"""
+    """Get all active features, optionally filtered by category with caching"""
     try:
+        # Create cache key based on category filter
+        cache_filters = {"category": category} if category else {}
+        cached_features = await get_cached_content("features", cache_filters)
+        if cached_features:
+            return ResponseModel(
+                success=True,
+                message="Features retrieved from cache",
+                data=cached_features
+            )
+        
+        # Fetch from database
         filter_dict = {"is_active": True}
         if category:
             filter_dict["category"] = category
             
         features = await get_all_documents("features", filter_dict, "order", 1)
+        
+        # Cache the result
+        await set_cached_content("features", features, cache_filters, ttl=get_cache_ttl("features"))
         
         return ResponseModel(
             success=True,
@@ -111,6 +146,9 @@ async def create_feature(feature_data: FeatureCreate):
         feature_obj = Feature(**feature_dict)
         created_feature = await create_document("features", feature_obj.dict())
         
+        # Invalidate cache
+        await invalidate_content_cache("features")
+        
         return ResponseModel(
             success=True,
             message="Feature created successfully",
@@ -127,6 +165,9 @@ async def update_feature(feature_id: str, feature_data: FeatureCreate):
         updated_feature = await update_document("features", feature_id, feature_data.dict())
         if not updated_feature:
             raise HTTPException(status_code=404, detail="Feature not found")
+        
+        # Invalidate cache
+        await invalidate_content_cache("features")
             
         return ResponseModel(
             success=True,
@@ -140,9 +181,23 @@ async def update_feature(feature_id: str, feature_data: FeatureCreate):
 # Testimonials Endpoints
 @router.get("/testimonials", response_model=ResponseModel)
 async def get_testimonials(limit: int = Query(10, ge=1, le=100)):
-    """Get all active testimonials"""
+    """Get all active testimonials with caching"""
     try:
+        # Check cache first
+        cache_filters = {"limit": limit}
+        cached_testimonials = await get_cached_content("testimonials", cache_filters)
+        if cached_testimonials:
+            return ResponseModel(
+                success=True,
+                message="Testimonials retrieved from cache",
+                data=cached_testimonials
+            )
+        
+        # Fetch from database
         testimonials = await get_all_documents("testimonials", {"is_active": True}, "order", 1, limit)
+        
+        # Cache the result
+        await set_cached_content("testimonials", testimonials, cache_filters, ttl=get_cache_ttl("testimonials"))
         
         return ResponseModel(
             success=True,
@@ -160,6 +215,9 @@ async def create_testimonial(testimonial_data: TestimonialCreate):
         testimonial_dict = testimonial_data.dict()
         testimonial_obj = Testimonial(**testimonial_dict)
         created_testimonial = await create_document("testimonials", testimonial_obj.dict())
+        
+        # Invalidate cache
+        await invalidate_content_cache("testimonials")
         
         return ResponseModel(
             success=True,
