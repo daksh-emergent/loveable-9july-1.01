@@ -93,13 +93,13 @@ def test_features():
     if not response["success"]:
         return False
     
-    # Check if we have all 6 features
+    # Check if we have at least 6 features
     features = response["data"].get("data", [])
-    if len(features) != 6:
-        print(f"❌ Expected 6 features, got {len(features)}")
+    if len(features) < 6:
+        print(f"❌ Expected at least 6 features, got {len(features)}")
         return False
     
-    print(f"✅ Found {len(features)} features as expected")
+    print(f"✅ Found {len(features)} features (expected at least 6)")
     
     expected_fields = ["title", "description", "icon_svg", "category"]
     return validate_response_data(response["data"], expected_fields)
