@@ -38,7 +38,7 @@ class DatabaseManager:
     
     async def get_collection(self, collection_name: str) -> AsyncIOMotorCollection:
         """Get a collection from the database"""
-        if not self.db:
+        if self.db is None:
             await self.connect()
         return self.db[collection_name]
     
