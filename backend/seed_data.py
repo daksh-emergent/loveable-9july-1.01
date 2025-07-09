@@ -8,9 +8,14 @@ import asyncio
 import os
 import sys
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Add backend directory to path
 sys.path.append(str(Path(__file__).parent))
+
+# Load environment variables
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
 
 from database import db_manager, create_document
 from models import *
