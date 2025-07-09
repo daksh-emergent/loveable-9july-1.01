@@ -145,7 +145,10 @@ async def create_document(collection_name: str, document: Dict[str, Any]) -> Dic
     
     result = await collection.insert_one(document)
     if result.inserted_id:
-        return await collection.find_one({"_id": result.inserted_id})
+        doc = await collection.find_one({"_id": result.inserted_id})
+        if doc and '_id' in doc:
+            doc['_id'] = str(doc['_id'])
+        return doc
     return document
 
 async def update_document(collection_name: str, document_id: str, update_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
