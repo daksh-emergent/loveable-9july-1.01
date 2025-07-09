@@ -162,7 +162,10 @@ async def update_document(collection_name: str, document_id: str, update_data: D
     )
     
     if result.modified_count > 0:
-        return await collection.find_one({"id": document_id})
+        doc = await collection.find_one({"id": document_id})
+        if doc and '_id' in doc:
+            doc['_id'] = str(doc['_id'])
+        return doc
     return None
 
 async def delete_document(collection_name: str, document_id: str) -> bool:
