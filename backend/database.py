@@ -49,57 +49,74 @@ class DatabaseManager:
             hero_collection = await self.get_collection("hero_content")
             await hero_collection.create_index([("is_active", 1)])
             
-            # Features indexes
+            # Features indexes - OPTIMIZED with compound indexes
             features_collection = await self.get_collection("features")
             await features_collection.create_index([("is_active", 1), ("order", 1)])
+            await features_collection.create_index([("is_active", 1), ("category", 1), ("order", 1)])
             await features_collection.create_index([("category", 1)])
+            # Text search index for features
+            await features_collection.create_index([("title", "text"), ("description", "text")])
             
-            # Testimonials indexes
+            # Testimonials indexes - OPTIMIZED with compound indexes
             testimonials_collection = await self.get_collection("testimonials")
             await testimonials_collection.create_index([("is_active", 1), ("order", 1)])
+            await testimonials_collection.create_index([("is_active", 1), ("rating", -1)])
+            # Text search index for testimonials
+            await testimonials_collection.create_index([("content", "text"), ("author", "text"), ("role", "text")])
             
-            # Process steps indexes
+            # Process steps indexes - OPTIMIZED with compound indexes
             process_steps_collection = await self.get_collection("process_steps")
             await process_steps_collection.create_index([("is_active", 1), ("order", 1)])
+            await process_steps_collection.create_index([("is_active", 1), ("step_type", 1), ("order", 1)])
             await process_steps_collection.create_index([("step_type", 1)])
+            # Text search index for process steps
+            await process_steps_collection.create_index([("title", "text"), ("description", "text")])
             
-            # Specifications indexes
+            # Specifications indexes - OPTIMIZED with compound indexes
             specifications_collection = await self.get_collection("specifications")
             await specifications_collection.create_index([("is_active", 1), ("order", 1)])
+            # Text search index for specifications
+            await specifications_collection.create_index([("section_title", "text"), ("content", "text")])
             
-            # Navigation indexes
+            # Navigation indexes - OPTIMIZED with compound indexes
             navigation_collection = await self.get_collection("navigation")
             await navigation_collection.create_index([("is_active", 1), ("nav_type", 1), ("order", 1)])
+            await navigation_collection.create_index([("nav_type", 1)])
             
-            # Footer sections indexes
+            # Footer sections indexes - OPTIMIZED with compound indexes
             footer_collection = await self.get_collection("footer_sections")
             await footer_collection.create_index([("is_active", 1), ("section_type", 1), ("order", 1)])
+            await footer_collection.create_index([("section_type", 1)])
             
-            # Newsletter indexes
+            # Newsletter indexes - OPTIMIZED
             newsletter_collection = await self.get_collection("newsletter_signups")
             await newsletter_collection.create_index([("email", 1)], unique=True)
             await newsletter_collection.create_index([("created_at", -1)])
+            await newsletter_collection.create_index([("status", 1), ("created_at", -1)])
             
             # Site settings indexes
             site_settings_collection = await self.get_collection("site_settings")
             await site_settings_collection.create_index([("is_active", 1)])
             
-            # Content pages indexes
+            # Content pages indexes - OPTIMIZED
             content_pages_collection = await self.get_collection("content_pages")
             await content_pages_collection.create_index([("slug", 1)], unique=True)
             await content_pages_collection.create_index([("published", 1), ("page_type", 1)])
+            await content_pages_collection.create_index([("title", "text"), ("content", "text")])
             
-            # Page views indexes
+            # Page views indexes - OPTIMIZED for analytics
             page_views_collection = await self.get_collection("page_views")
             await page_views_collection.create_index([("timestamp", -1)])
-            await page_views_collection.create_index([("page_path", 1)])
+            await page_views_collection.create_index([("page_path", 1), ("timestamp", -1)])
+            await page_views_collection.create_index([("session_id", 1), ("timestamp", -1)])
             
-            # Contact forms indexes
+            # Contact forms indexes - OPTIMIZED
             contact_forms_collection = await self.get_collection("contact_forms")
             await contact_forms_collection.create_index([("created_at", -1)])
-            await contact_forms_collection.create_index([("status", 1)])
+            await contact_forms_collection.create_index([("status", 1), ("created_at", -1)])
+            await contact_forms_collection.create_index([("email", 1)])
             
-            logger.info("Database indexes created successfully")
+            logger.info("Database indexes created successfully with performance optimizations")
             
         except Exception as e:
             logger.error(f"Failed to create indexes: {e}")
