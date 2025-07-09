@@ -117,7 +117,14 @@ async def get_all_documents(collection_name: str, filter_dict: Dict[str, Any] = 
     filter_dict = filter_dict or {"is_active": True}
     
     cursor = collection.find(filter_dict).sort(sort_field, sort_direction).limit(limit)
-    return await cursor.to_list(length=limit)
+    documents = await cursor.to_list(length=limit)
+    
+    # Convert ObjectId to string
+    for doc in documents:
+        if '_id' in doc:
+            doc['_id'] = str(doc['_id'])
+    
+    return documents
 
 async def get_document_by_id(collection_name: str, document_id: str) -> Optional[Dict[str, Any]]:
     """Get a single document by ID"""
