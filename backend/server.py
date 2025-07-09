@@ -80,17 +80,18 @@ logger = logging.getLogger(__name__)
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize database connection and create indexes"""
+    """Initialize database connection, cache, and create indexes"""
     try:
         await db_manager.connect()
         await db_manager.create_indexes()
-        logger.info("Database connection established and indexes created")
+        cache_manager.connect()
+        logger.info("Database and cache connections established, indexes created")
     except Exception as e:
-        logger.error(f"Failed to initialize database: {e}")
+        logger.error(f"Failed to initialize database/cache: {e}")
         raise
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """Close database connection"""
+    """Close database and cache connections"""
     await db_manager.disconnect()
-    logger.info("Database connection closed")
+    logger.info("Database and cache connections closed")
