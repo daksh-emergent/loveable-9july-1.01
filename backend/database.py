@@ -129,7 +129,13 @@ async def get_all_documents(collection_name: str, filter_dict: Dict[str, Any] = 
 async def get_document_by_id(collection_name: str, document_id: str) -> Optional[Dict[str, Any]]:
     """Get a single document by ID"""
     collection = await db_manager.get_collection(collection_name)
-    return await collection.find_one({"id": document_id})
+    doc = await collection.find_one({"id": document_id})
+    
+    # Convert ObjectId to string
+    if doc and '_id' in doc:
+        doc['_id'] = str(doc['_id'])
+    
+    return doc
 
 async def create_document(collection_name: str, document: Dict[str, Any]) -> Dict[str, Any]:
     """Create a new document"""
