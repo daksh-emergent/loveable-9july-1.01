@@ -1,44 +1,21 @@
 
 import React, { useRef } from "react";
+import { useTestimonials } from "@/hooks/useApi";
 
 interface TestimonialProps {
   content: string;
   author: string;
   role: string;
+  company: string;
   gradient: string;
   backgroundImage?: string;
 }
-
-const testimonials: TestimonialProps[] = [{
-  content: "Atlas transformed our production line, handling repetitive tasks while our team focuses on innovation. 30% increase in output within three months.",
-  author: "Sarah Chen",
-  role: "VP of Operations, Axion Manufacturing",
-  gradient: "from-blue-700 via-indigo-800 to-purple-900",
-  backgroundImage: "/background-section1.png"
-}, {
-  content: "Implementing Atlas in our fulfillment centers reduced workplace injuries by 40% while improving order accuracy. The learning capabilities are remarkable.",
-  author: "Michael Rodriguez",
-  role: "Director of Logistics, GlobalShip",
-  gradient: "from-indigo-900 via-purple-800 to-orange-500",
-  backgroundImage: "/background-section2.png"
-}, {
-  content: "Atlas adapted to our lab protocols faster than any system we've used. It's like having another researcher who never gets tired and maintains perfect precision.",
-  author: "Dr. Amara Patel",
-  role: "Lead Scientist, BioAdvance Research",
-  gradient: "from-purple-800 via-pink-700 to-red-500",
-  backgroundImage: "/background-section3.png"
-}, {
-  content: "As a mid-size business, we never thought advanced robotics would be accessible to us. Atlas changed that equation entirely with its versatility and ease of deployment.",
-  author: "Jason Lee",
-  role: "CEO, Innovative Solutions Inc.",
-  gradient: "from-orange-600 via-red-500 to-purple-600",
-  backgroundImage: "/background-section1.png"
-}];
 
 const TestimonialCard = ({
   content,
   author,
   role,
+  company,
   backgroundImage = "/background-section1.png"
 }: TestimonialProps) => {
   return <div className="bg-cover bg-center rounded-lg p-8 h-full flex flex-col justify-between text-white transform transition-transform duration-300 hover:-translate-y-2 relative overflow-hidden" style={{
@@ -50,7 +27,7 @@ const TestimonialCard = ({
         <p className="text-xl mb-8 font-medium leading-relaxed pr-20">{`"${content}"`}</p>
         <div>
           <h4 className="font-semibold text-xl">{author}</h4>
-          <p className="text-white/80">{role}</p>
+          <p className="text-white/80">{role}, {company}</p>
         </div>
       </div>
     </div>;
@@ -58,6 +35,53 @@ const TestimonialCard = ({
 
 const Testimonials = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
+  
+  // Fetch testimonials from API
+  const { data: testimonials, isLoading, error } = useTestimonials(10);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <section className="py-12 bg-white relative" id="testimonials" ref={sectionRef}>
+        <div className="section-container">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-300 rounded w-32"></div>
+            </div>
+          </div>
+          
+          <div className="animate-pulse mb-12">
+            <div className="h-12 bg-gray-300 rounded w-64 mb-4"></div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {[...Array(4)].map((_, index) => (
+              <div key={index} className="animate-pulse bg-gray-300 rounded-lg h-64"></div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <section className="py-12 bg-white relative" id="testimonials" ref={sectionRef}>
+        <div className="section-container">
+          <div className="text-center">
+            <div className="text-red-600 mb-4">Failed to load testimonials</div>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return <section className="py-12 bg-white relative" id="testimonials" ref={sectionRef}> {/* Reduced from py-20 */}
       <div className="section-container opacity-0 animate-on-scroll">
@@ -71,7 +95,17 @@ const Testimonials = () => {
         <h2 className="text-5xl font-display font-bold mb-12 text-left">What others say</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {testimonials.map((testimonial, index) => <TestimonialCard key={index} content={testimonial.content} author={testimonial.author} role={testimonial.role} gradient={testimonial.gradient} backgroundImage={testimonial.backgroundImage} />)}
+          {testimonials?.map((testimonial, index) => (
+            <TestimonialCard 
+              key={testimonial.id} 
+              content={testimonial.content} 
+              author={testimonial.author} 
+              role={testimonial.role} 
+              company={testimonial.company}
+              gradient={testimonial.gradient} 
+              backgroundImage={testimonial.background_image} 
+            />
+          ))}
         </div>
       </div>
     </section>;
