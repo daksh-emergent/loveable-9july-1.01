@@ -11,8 +11,11 @@ import uuid
 from datetime import datetime
 
 # Import our new content API
-# Import content API directly from the file
-from content_api_file import router as content_router
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent))
+import content_api
+from content_api import router as content_router
 from database import db_manager
 
 
