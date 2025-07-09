@@ -10,13 +10,14 @@ from typing import List
 import uuid
 from datetime import datetime
 
-# Import our new content API
+# Import our new content API and cache
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent))
 import content_api
 from content_api import router as content_router
 from database import db_manager
+from cache import cache_manager
 
 
 ROOT_DIR = Path(__file__).parent
