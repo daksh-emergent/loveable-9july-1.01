@@ -196,4 +196,11 @@ async def search_documents(collection_name: str, search_query: str,
     }
     
     cursor = collection.find(filter_dict).sort("order", 1)
-    return await cursor.to_list(length=1000)
+    documents = await cursor.to_list(length=1000)
+    
+    # Convert ObjectId to string
+    for doc in documents:
+        if '_id' in doc:
+            doc['_id'] = str(doc['_id'])
+    
+    return documents
